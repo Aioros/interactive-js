@@ -1,10 +1,3 @@
-// Can't believe that I need express to stop the app from restarting
-////////////////////////////////
-const express = require("express");
-var app = express();
-var listener = app.listen(process.env.PORT, function () {});
-////////////////////////////////
-
 const Compiler = require("./compiler.js");
 const Scope = require("./scope.js");
 const Context = require("./context.js");
