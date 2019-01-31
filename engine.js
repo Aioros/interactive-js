@@ -182,10 +182,7 @@ const Engine = {
     var funDecs = tempTree.filter(s => s.type == "FunctionDeclaration");
     var varDecs = tempTree.filter(s => s.type == "VariableDeclaration" && s.kind != "let");
     funDecs.forEach(dec => {
-      // associate an execution context to this function with the right scope chain
-      dec.context = Object.create(Context);
-      dec.context.init(dec.id.name);
-      dec.context.ScopeChain = dec.context.ScopeChain.concat(this.getCurrentContext().ScopeChain);
+      this.createFunctionContext(dec);
       this.Scope.define(dec.id.name, "function", dec);
     });
     varDecs.forEach(decs => {
@@ -200,6 +197,13 @@ const Engine = {
     // Evaluation
     return await this.process(body);
 
+  },
+
+  createFunctionContext: function(f) {
+    // associate an execution context to this function with the right scope chain
+    f.context = Object.create(Context);
+    f.context.init(f.id ? f.id.name : null);
+    f.context.ScopeChain = f.context.ScopeChain.concat(this.getCurrentContext().ScopeChain);
   },
   
   addAction: function(hooks, action, when = "before") {
