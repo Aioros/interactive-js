@@ -18,11 +18,11 @@ const Scope = {
       // Found it
       return context.ScopeChain[s][identifier];
     } else {
-      // Maybe it's a (true) global object?
-      var realGlobal = (1,eval)("this");
+      // This would try to find the identifier in the (true) global object
+      /*var realGlobal = (1,eval)("this");
       if (realGlobal[identifier])
         return {value: realGlobal[identifier], bind: realGlobal};
-      else
+      else*/
         throw new ReferenceError(identifier + " is not defined");
     }
   },

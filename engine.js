@@ -6,9 +6,10 @@ var actionHooks = {before: new Map(), after: new Map()};
 
 const Engine = {
   _initialized: false,
-  init: function(useStrict = false) {
+  init: function(globalObj = {}, useStrict = false) {
     if (!this._initialized) {
       this._initialized = true;
+      this.globalObj = globalObj;
       this.useStrict = useStrict;
       this.appendStatement = null;
       this.callStack = [];
@@ -18,12 +19,15 @@ const Engine = {
       this.Scope.init(this);
     }
   },
-  run: async function(script) {
-    this.init();
+  run: async function(script, globalObj = {}, useStrict = false) {
+    this.init(globalObj, useStrict);
     var mainFunction = this.Compiler.parse(script);
     mainFunction.context = Object.create(Context);
     mainFunction.context.init("Global");
     this.callStack.push(mainFunction.context);
+    for (let [key, value] of Object.entries(this.globalObj)) {
+      this.Scope.define(key, "var", value);
+    }
     return await this.processFunction(mainFunction);
     // this is where the event loop should be
   },
