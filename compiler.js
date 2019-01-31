@@ -29,7 +29,7 @@ module.exports = {
   init: function(engine) {
     this.Engine = engine;
   },
-  setupNode: function(node, debug) {
+  setupNode: function(node) {
     var expType = expressionTypes.find(t => t.type == node.type || t.type.includes(node.type));
     var stmType = statementTypes.find(t => t.type == node.type || t.type.includes(node.type));
     if (expType) {

@@ -2,7 +2,7 @@ const Compiler = require("./compiler.js");
 const Scope = require("./scope.js");
 const Context = require("./context.js");
 
-var actionHooks = new Map();
+var actionHooks = {before: new Map(), after: new Map()};
 
 const Engine = {
   _initialized: false,
@@ -18,13 +18,13 @@ const Engine = {
       this.Scope.init(this);
     }
   },
-  start: function(script) {
+  run: async function(script) {
     this.init();
     var mainFunction = this.Compiler.parse(script);
     mainFunction.context = Object.create(Context);
     mainFunction.context.init("Global");
     this.callStack.push(mainFunction.context);
-    return this.processFunction(mainFunction);
+    return await this.processFunction(mainFunction);
     // this is where the event loop should be
   },
   
@@ -55,15 +55,15 @@ const Engine = {
     }
   },
   
-  findMemberExpression: function(expression) {
+  findMemberExpression: async function(expression) {
     var info = {
       obj: null,
-      prop: expression.computed ? this.process(expression.property) : expression.property.name,
+      prop: expression.computed ? await this.process(expression.property) : expression.property.name,
       getValue: function() {
         return this.obj[this.prop];
       }
     }
-    info.obj = this.process(expression.object, true);
+    info.obj = await this.process(expression.object);
     return info;
   },
   
@@ -107,16 +107,19 @@ const Engine = {
     return result;
   },
   
-  processFunction: function(tree, callParams = []) {
+  processFunction: async function(tree, callParams = []) {
     
     // The function body is a BlockStatement, whose body is our set of statements
     var body = tree.body;
     body.isMainFunctionBlock = true;
     
     // define function arguments
-    this.Scope.define("arguments", "var", callParams.map(p => {
-      return this.process(p);
-    }));
+    var args = [];
+    for (let p of callParams) {
+      args.push(await this.process(p));
+    }
+    this.Scope.define("arguments", "var", args);
+
     // args definition and assignment is performed as an array-pattern variable declaration
     if (tree.params.length > 0) {
       var ids = this.extractIdentifiers({type: "ArrayPattern", elements: tree.params});
@@ -138,7 +141,7 @@ const Engine = {
           }
         }]
       };
-      this.process(argsStatement);
+      await this.process(argsStatement);
     }
 
     // Find variable and function declarations for hoisting
@@ -191,53 +194,58 @@ const Engine = {
     });
 
     // Evaluation
-    return this.process(body);
+    return await this.process(body);
 
   },
   
-  addAction: function(hooks, action) {
+  addAction: function(hooks, action, when = "before") {
     if (!action) return;
     if (!Array.isArray(hooks)) {
       hooks = [hooks];
     }
     hooks.forEach(hook => {
-      if (!actionHooks.has(hook))
-        actionHooks.set(hook, []);
-      actionHooks.get(hook).push(action);
+      if (!actionHooks[when].has(hook))
+        actionHooks[when].set(hook, []);
+      actionHooks[when].get(hook).push(action);
     });
   },
 
-  getActions: function(hook) {
-    return Array.from(actionHooks.entries()).filter(([key, ]) => {
-      if (typeof key === "string") {
-        return hook == key;
-      } else if (key instanceof RegExp) {
-        return key.test(hook);
+  getActions: function(targetHook, targetWhen) {
+    return Array.from(actionHooks[targetWhen].entries()).filter(([hook, ]) => {
+      if (typeof hook === "string") {
+        return targetHook == hook;
+      } else if (hook instanceof RegExp) {
+        return hook.test(targetHook);
       }
     }).reduce((acc, [, actions]) => acc.concat(actions), []);
   },
   
-  process: function(node, debug) {    
+  process: async function(node) {    
     if (!node._initialized) {
-      node = this.Compiler.setupNode(node, debug);
+      node = this.Compiler.setupNode(node);
     }
     
-    for (let action of this.getActions(node.type)) {
-      action.call(node, node);
+    for (let action of this.getActions(node.type, "before")) {
+      await action.call(node, node);
     }
     
     var result;
     if (node.isStatement) {
-      result = node.execute();
+      result = await node.execute();
     } else if (node.isExpression) {
-      result = node.evaluate();
+      result = await node.evaluate();
     }
+
+    for (let action of this.getActions(node.type, "after")) {
+      await action.call(node, node);
+    }
+
     return result;
   },
   
-  callFunction(f, args) {
+  callFunction: async function(f, args) {
     this.callStack.push(f.context);
-    var result = this.processFunction(f, args).value;
+    var result = (await this.processFunction(f, args)).value;
     this.callStack.pop();
     return result;
   }
