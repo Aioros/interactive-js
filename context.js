@@ -1,3 +1,4 @@
+// Execution Context object
 const Context = {
   init: function(name) {
     this.name = name;
