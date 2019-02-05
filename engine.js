@@ -47,6 +47,7 @@ const Engine = {
       this.Scope.define(key, "var", this.globalObj[key]);
     }
     this.Scope.define("global", "var", globalObj); // TODO: or window? or something else?
+    this.Scope.define("this", "var", globalObj);
     return await this.processFunction(mainFunction);
     // this is where the event loop should be
   },
@@ -130,11 +131,16 @@ const Engine = {
     return result;
   },
   
-  processFunction: async function(tree, callParams = []) {
+  processFunction: async function(tree, callParams = [], fThis = null) {
     
     // The function body is a BlockStatement, whose body is our set of statements
     var body = tree.body;
     body.isMainFunctionBlock = true;
+
+    // define this
+    if (fThis) {
+      this.Scope.define("this", "var", await this.process(fThis));
+    }
     
     // define function arguments
     var args = [];
@@ -270,9 +276,11 @@ const Engine = {
     return result;
   },
   
-  callFunction: async function(f, args) {
+  callFunction: async function(f, args, fThis) {
+    if (!f.context)
+      this.createFunctionContext(f);
     this.callStack.push(f.context);
-    var result = (await this.processFunction(f, args)).value;
+    var result = (await this.processFunction(f, args, fThis)).value;
     this.callStack.pop();
     return result;
   }
