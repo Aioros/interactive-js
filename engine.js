@@ -1,11 +1,14 @@
 const Compiler = require("./compiler.js");
 const Scope = require("./scope.js");
 const Context = require("./context.js");
-const vm = require('vm');
+const MessageQueue = require("./messageQueue.js");
+const asyncApis = require("./asyncApis.js");
+
+const vm = require("vm");
 
 var actionHooks = {before: new Map(), after: new Map()};
 
-function createGlobalObject() {
+function createGlobalObject(engine) {
   // Trick the vm module into passing me its context object
   // Not a looker, but gets the job done
   var globalObj;
@@ -27,7 +30,7 @@ const Engine = {
   init: function(globalObj = {}, useStrict = false) {
     if (!this._initialized) {
       this._initialized = true;
-      this.globalObj = Object.assign(createGlobalObject(), globalObj);
+      this.globalObj = Object.assign(createGlobalObject(this), globalObj, asyncApis(this));
       this.useStrict = useStrict;
       this.appendStatement = null;
       this.callStack = [];
@@ -35,6 +38,7 @@ const Engine = {
       this.Compiler.init(this);
       this.Scope = Object.create(Scope);
       this.Scope.init(this);
+      this.MessageQueue = Object.create(MessageQueue);
     }
   },
   run: async function(script, globalObj = {}, useStrict = false) {
@@ -48,8 +52,9 @@ const Engine = {
     }
     this.Scope.define("global", "var", globalObj); // TODO: or window? or something else?
     this.Scope.define("this", "var", globalObj);
-    return await this.processFunction(mainFunction);
+    var result = await this.processFunction(mainFunction);
     // this is where the event loop should be
+    await this.MessageQueue.runEventLoop();
   },
   
   getCurrentContext: function() {
@@ -254,6 +259,10 @@ const Engine = {
   },
   
   process: async function(node) {
+    if (!node || !node.type) {
+      return node;
+    } 
+
     if (!node._initialized) {
       node = this.Compiler.setupNode(node);
     }
