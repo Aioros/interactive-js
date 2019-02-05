@@ -40,7 +40,6 @@ Status and Features
 ------------
 The project is still in early development. Most of the basic language constructs work, but many fundamental features are still missing, most notably:
 
- - the `this` keyword;
  - the event loop;
- - `async`/`await`;
+ - `async`/`await` and Promises;
  - function prototypes.
