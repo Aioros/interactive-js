@@ -206,10 +206,10 @@ const Engine = {
 
     var funDecs = tempTree.filter(s => s.type == "FunctionDeclaration");
     var varDecs = tempTree.filter(s => s.type == "VariableDeclaration" && s.kind != "let");
-    funDecs.forEach(dec => {
-      this.createFunctionContext(dec);
-      this.Scope.define(dec.id.name, "function", dec);
-    });
+    for (let dec of funDecs) {
+      let fn = await this.process(dec);
+      this.Scope.define(dec.id.name, "function", fn.value);
+    }
     varDecs.forEach(decs => {
       decs.declarations.forEach(dec => {
         var ids = this.extractIdentifiers(dec.id);
@@ -253,10 +253,13 @@ const Engine = {
     }).reduce((acc, [, actions]) => acc.concat(actions), []);
   },
   
-  process: async function(node) {    
+  process: async function(node) {
     if (!node._initialized) {
       node = this.Compiler.setupNode(node);
     }
+
+    if (!node.isStatement && !node.isExpression)
+      return node;
     
     for (let action of this.getActions(node.type, "before")) {
       await action.call(node, node);
