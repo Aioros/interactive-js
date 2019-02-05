@@ -1,15 +1,33 @@
 const Compiler = require("./compiler.js");
 const Scope = require("./scope.js");
 const Context = require("./context.js");
+const vm = require('vm');
 
 var actionHooks = {before: new Map(), after: new Map()};
+
+function createGlobalObject() {
+  // Trick the vm module into passing me its context object
+  // Not a looker, but gets the job done
+  var globalObj;
+
+  function assignSandboxToGlobalObj(sb) {
+    globalObj = sb;
+  }
+
+  var sandbox = vm.createContext();
+  sandbox.assignSandboxToGlobalObj = assignSandboxToGlobalObj;
+  vm.runInContext('assignSandboxToGlobalObj(this)', sandbox);
+  delete globalObj['assignSandboxToGlobalObj'];
+
+  return globalObj;
+}
 
 const Engine = {
   _initialized: false,
   init: function(globalObj = {}, useStrict = false) {
     if (!this._initialized) {
       this._initialized = true;
-      this.globalObj = globalObj;
+      this.globalObj = Object.assign(createGlobalObject(), globalObj);
       this.useStrict = useStrict;
       this.appendStatement = null;
       this.callStack = [];
@@ -25,9 +43,10 @@ const Engine = {
     mainFunction.context = Object.create(Context);
     mainFunction.context.init("Global");
     this.callStack.push(mainFunction.context);
-    for (let [key, value] of Object.entries(this.globalObj)) {
-      this.Scope.define(key, "var", value);
+    for (let key of Object.getOwnPropertyNames(this.globalObj)) {
+      this.Scope.define(key, "var", this.globalObj[key]);
     }
+    this.Scope.define("global", "var", globalObj); // TODO: or window? or something else?
     return await this.processFunction(mainFunction);
     // this is where the event loop should be
   },
