@@ -297,9 +297,10 @@ const Engine = {
     if (!f.context)
       this.createFunctionContext(f);
     this.callStack.push(f.context);
-    var result = (await this.processFunction(f, args, fThis)).value;
+    var result = await this.processFunction(f, args, fThis);
     this.callStack.pop();
-    return result;
+    if (result.type == "return")
+      return result.value;
   }
   
 };
