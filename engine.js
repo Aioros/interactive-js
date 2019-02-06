@@ -276,6 +276,11 @@ const Engine = {
     
     var result;
     if (node.isStatement) {
+      if (this.appendStatement) {
+        let appSt = this.appendStatement;
+        this.appendStatement = null;
+        await this.process(appSt);
+      }
       result = await node.execute();
     } else if (node.isExpression) {
       result = await node.evaluate();
