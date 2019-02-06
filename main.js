@@ -1,8 +1,13 @@
 const Engine = require("./engine.js");
 
 var script = `
-setTimeout(function() {
-  console.log("TIMEOUT");
+var i=0;
+var t = setInterval(function() {
+  i++;
+  console.log("INTERVAL " + i);
+  if (i > 2) {
+    clearInterval(t);
+  }
 }, 1000);
 `;
 var e = Object.create(Engine);
