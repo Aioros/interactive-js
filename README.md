@@ -1,4 +1,5 @@
 
+
 Interactive JS
 =================
 Interactive JS is a (**very**) simplified implementation of a JavaScript engine in JavaScript. It runs a script in a sandboxed environment, and allows users to register actions at any step.
@@ -12,7 +13,7 @@ Usage
     
     var script = `
     function foo(a=1) {
-    	console.log(a);
+      console.log(a);
     }
     
     foo(2);
@@ -40,6 +41,6 @@ Status and Features
 ------------
 The project is still in early development. Most of the basic language constructs work, but many fundamental features are still missing, most notably:
 
- - the event loop;
  - `async`/`await` and Promises;
- - function prototypes.
+ - shims for common async API functions;
+

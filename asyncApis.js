@@ -3,6 +3,9 @@ const crypto = require("crypto");
 const _setTimeout = setTimeout;
 const [_setInterval, _clearInterval] = [setInterval, clearInterval];
 
+// I'll probably need some kind of deep merge (instead of Object.assign)
+// to overwrite things like fs.readFile or anything.else
+
 module.exports = function(engine) {
   return {
     setTimeout: function setTimeout(callback, delay) {

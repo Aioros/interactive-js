@@ -1,14 +1,12 @@
 const Engine = require("./engine.js");
 
 var script = `
-var i=0;
-var t = setInterval(function() {
-  i++;
-  console.log("INTERVAL " + i);
-  if (i > 2) {
-    clearInterval(t);
-  }
-}, 1000);
+function myFunc(name) {
+  this.name = name;
+}
+myFunc.prototype.foo = "bar";
+var steve = new myFunc("Steve");
+console.log(steve.name, steve.foo);
 `;
 var e = Object.create(Engine);
 /*e.addAction("CallExpression", function(e) {console.log("call pre: ", e.type);}, "before");
