@@ -2,7 +2,7 @@ const Compiler = require("./compiler.js");
 const Scope = require("./scope.js");
 const Context = require("./context.js");
 const MessageQueue = require("./messageQueue.js");
-const asyncApis = require("./asyncApis.js");
+const asyncApis = require("./lib/asyncApis.js");
 
 const vm = require("vm");
 
@@ -30,7 +30,7 @@ const Engine = {
   init: function(globalObj = {}, useStrict = false) {
     if (!this._initialized) {
       this._initialized = true;
-      this.globalObj = Object.assign(createGlobalObject(this), globalObj, asyncApis(this));
+      this.globalObj = Object.assign(createGlobalObject(this), asyncApis(this), globalObj);
       this.useStrict = useStrict;
       this.appendStatement = null;
       this.callStack = [];
