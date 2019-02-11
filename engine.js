@@ -87,9 +87,9 @@ const Engine = {
   findMemberExpression: async function(expression) {
     var info = {
       obj: null,
-      prop: expression.computed ? await this.process(expression.property) : expression.property.name,
+      prop: expression.computed ? (await this.process(expression.property)).value : expression.property.name,
       getValue: function() {
-        return this.obj[this.prop];
+        return this.obj.value[this.prop];
       }
     }
     info.obj = await this.process(expression.object);
