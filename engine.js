@@ -81,6 +81,9 @@ const Engine = {
       case "AssignmentPattern":
         return [expression.left];
         break;
+      case "RestElement":
+        return [expression.argument];
+        break;
     }
   },
   
