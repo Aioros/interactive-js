@@ -216,7 +216,7 @@ const Engine = {
     var varDecs = tempTree.filter(s => s.type == "VariableDeclaration" && s.kind != "let");
     for (let dec of funDecs) {
       let fn = await this.process(dec);
-      this.Scope.define(dec.id.name, "function", fn.value);
+      this.Scope.define(dec.id.name, "function", fn.value.value);
     }
     varDecs.forEach(decs => {
       decs.declarations.forEach(dec => {
