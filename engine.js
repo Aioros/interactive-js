@@ -263,7 +263,7 @@ const Engine = {
   
   process: async function(node) {
     if (!node || !node.type) {
-      return node;
+      return {value: node};
     } 
 
     if (!node._initialized) {
