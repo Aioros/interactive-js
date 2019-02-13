@@ -1,13 +1,25 @@
 const Engine = require("./engine.js");
 
 var script = `
-function myFunc(name) {
-  this.name = name;
-}
-myFunc.prototype.foo = "bar";
-var steve = new myFunc("Steve");
-console.log(steve.name, steve.foo);
+var p = new Promise((resolve, reject) => {
+  console.log("inside executor");
+  console.log(resolve);
+  resolve("foo");
+});
+console.log("p: ", p);
+var p2 = p.then((result) => {
+  console.log("RESULT: " + result);
+  return new Promise((resolve, reject) => {
+    resolve("bar");
+  });
+});
+console.log("p2: ", p2);
+var p3 = p2.then((result2) => {
+  console.log("RESULT2: " + result2);
+});
+console.log("p3: ", p3);
 `;
+
 var e = Object.create(Engine);
 /*e.addAction("CallExpression", function(e) {console.log("call pre: ", e.type);}, "before");
 e.addAction("CallExpression", function(e) {console.log("call post: ", e.type);}, "after");
