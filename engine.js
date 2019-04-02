@@ -55,6 +55,7 @@ const Engine = {
     var result = await this.processFunction(mainFunction);
     // this is where the event loop should be
     await this.MessageQueue.runEventLoop();
+    return result;
   },
   
   getCurrentContext: function() {
