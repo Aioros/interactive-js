@@ -271,8 +271,9 @@ const Engine = {
       node = this.Compiler.setupNode(node);
     }
 
-    if (!node.isStatement && !node.isExpression)
-      return node;
+    // Not sure why I needed this
+    //if (!node.isStatement && !node.isExpression)
+      //return node;
     
     for (let action of this.getActions(node.type, "before")) {
       await action.call(node, node);
