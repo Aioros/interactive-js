@@ -1,42 +1,55 @@
 const Engine = require("./engine.js");
 
 var script = `
-var p = new Promise((resolve, reject) => {
-  console.log("inside executor");
-  console.log(resolve);
-  resolve("foo");
-});
-console.log("p: ", p);
-var p2 = p.then((result) => {
-  console.log("RESULT: " + result);
-  return new Promise((resolve, reject) => {
-    resolve("bar");
-  });
-});
-console.log("p2: ", p2);
-var p3 = p2.then((result2) => {
-  console.log("RESULT2: " + result2);
-});
-console.log("p3: ", p3);
+/*function *myGen(a, b) {
+  var c = 1;
+  yield "foo";
+  var d = a*b;
+  yield d;
+  return 0;
+}
+var it = myGen(2, 3);
+console.log(it);
+var result = it.next();
+console.log(result);*/
+var x = 1, y = 2;
+var z = x + y;
+return z*2;
 `;
 
 var e = Object.create(Engine);
-/*e.addAction("CallExpression", function(e) {console.log("call pre: ", e.type);}, "before");
-e.addAction("CallExpression", function(e) {console.log("call post: ", e.type);}, "after");
-e.addAction("VariableDeclaration", function(s) {console.log("var pre: ", s.type);}, "before");
-e.addAction("VariableDeclaration", function(s) {console.log("var post: ", s.type);}, "after");*/
+
+process.stdin.setRawMode(true);
+process.stdin.resume();
+process.stdin.setEncoding("utf8");
+
+var observers = [];
+function drain() {
+  while (observers.length > 0) {
+    let {node, resolve} = observers[0];
+    console.log(node.type);
+    resolve();
+    observers = observers.slice(1);
+  }
+}
+
 e.addAction(/.*/, function(n) {
-  return new Promise(function(resolve, reject) {
-    setTimeout(function() {
-      console.log(n.type);
-      resolve();
-    }, 10);
+  return new Promise((resolve, reject) => {
+    observers.push({node: n, resolve});
   });
 }, "before");
 
+process.stdin.on("data", (key) => {
+  drain();
+  if (key == "q")
+    process.exit();
+});
+
+setInterval(drain, 10);
+
 e.run(script, {console})
-  .then(() => {
-    console.log("done");
+  .then((result) => {
+    console.log(result, "done, press q to exit");
   })
   .catch((e) => {
     console.error(e);
