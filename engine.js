@@ -3,6 +3,7 @@ const Scope = require("./scope.js");
 const Context = require("./context.js");
 const MessageQueue = require("./messageQueue.js");
 const asyncApis = require("./lib/asyncApis.js");
+const arrayMethods = require("./lib/arrayMethods.js");
 
 const vm = require("vm");
 
@@ -21,6 +22,8 @@ function createGlobalObject(engine) {
   sandbox.assignSandboxToGlobalObj = assignSandboxToGlobalObj;
   vm.runInContext('assignSandboxToGlobalObj(this)', sandbox);
   delete globalObj['assignSandboxToGlobalObj'];
+
+  globalObj.Array.prototype = arrayMethods(globalObj.Array);
 
   return globalObj;
 }
