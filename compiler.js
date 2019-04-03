@@ -45,7 +45,6 @@ module.exports = {
     return node;
   },
   parse: function(script) {
-    script = "function Global() { " + script + " }";
     var tree = esprima.parseScript(script, {range: true, loc: true});
     tree = deepCopyMap(tree, this.setupNode.bind(this));
     var mainFunctionAST = tree.body[0];

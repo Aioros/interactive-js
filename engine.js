@@ -27,10 +27,15 @@ function createGlobalObject(engine) {
 
 const Engine = {
   _initialized: false,
-  init: function(globalObj = {}, useStrict = false) {
+  init: function(script, globalObj = {}, useStrict = false) {
     if (!this._initialized) {
       this._initialized = true;
-      this.globalObj = Object.assign(createGlobalObject(this), asyncApis(this), globalObj);
+      this.script = "function Global() { " + script + " }";
+      this.globalObj = Object.assign(
+        createGlobalObject(this),
+        asyncApis(this),
+        globalObj
+      );
       this.useStrict = useStrict;
       this.appendStatement = null;
       this.callStack = [];
@@ -42,8 +47,8 @@ const Engine = {
     }
   },
   run: async function(script, globalObj = {}, useStrict = false) {
-    this.init(globalObj, useStrict);
-    var mainFunction = this.Compiler.parse(script);
+    this.init(script, globalObj, useStrict);
+    var mainFunction = this.Compiler.parse(this.script);
     mainFunction.context = Object.create(Context);
     mainFunction.context.init("Global");
     this.callStack.push(mainFunction.context);
