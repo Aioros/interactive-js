@@ -60,15 +60,28 @@ describe("Suite of random scripts that I should organize much better", function(
   });
 
   it("Should manage closures correctly", function() {
-    readFile("./scripts/closure.test.js", (err, script) => {
+    return readFile("./scripts/closure.test.js").then((script) => {
       var e = Object.create(Engine);
-      e.run(script)
-        .then((result) => {
-          expect(result.type).to.equal("return");
-          expect(result.value.value).to.equal(9);
-        });
+      return e.run(script);
+    }).then((result) => {
+      expect(result.type).to.equal("return");
+      expect(result.value.value).to.equal(9);
     });
   });
 
+  it("Should manage promises correctly", function() {
+    return readFile("./scripts/promise.test.js").then((script) => {
+      var e = Object.create(Engine);
+      return e.run(script);
+    }).then((result) => {
+      expect(result.value.value).to.be.an("array");
+      var [resolved, unresolved] = result.value.value;
+      expect(unresolved).to.be.an("object");
+      expect(unresolved).to.have.property("__NPO__", 1);
+      expect(resolved).to.be.an("object");
+      expect(resolved).to.have.property("__NPO__", 1);
+      expect(resolved).to.have.property("__MSG__", "The answer is 42");
+    });
+  });
 
 });
