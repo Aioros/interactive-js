@@ -12,9 +12,10 @@ var it = myGen(2, 3);
 console.log(it);
 var result = it.next();
 console.log(result);*/
-var x = 1, y = 2;
-var z = x + y;
-return z*2;
+function foo() {
+  return arguments;
+}
+return foo(2, 22, 222);
 `;
 
 var e = Object.create(Engine);
@@ -27,7 +28,12 @@ var observers = [];
 function drain() {
   while (observers.length > 0) {
     let {node, resolve} = observers[0];
-    console.log(node.type);
+    console.log(
+      node.type,
+      node.range
+        ? node.Engine.script.substring(node.range[0], Math.min(node.range[0] + 20, node.range[1])).replace(/\n/g, "")
+        : ""
+    );
     resolve();
     observers = observers.slice(1);
   }
@@ -48,8 +54,8 @@ process.stdin.on("data", (key) => {
 setInterval(drain, 10);
 
 e.run(script, {console})
-  .then((result) => {
-    console.log(result, "done, press q to exit");
+  .then((completion) => {
+    console.log(completion.getCompletionValue(), "done, press q to exit");
   })
   .catch((e) => {
     console.error(e);

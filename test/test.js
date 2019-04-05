@@ -4,6 +4,7 @@ const should = require("chai").should();
 const fs = require('fs');
 
 const Engine = require("../engine.js");
+const Completion = require("../lib/completion.js");
 
 function readFile(path) {
   var filename = require.resolve(path);
@@ -23,9 +24,9 @@ describe("Suite of random scripts that I should organize much better", function(
     return readFile("./scripts/basicMath.test.js").then((script) => {
       var e = Object.create(Engine);
       return e.run(script);
-    }).then((result) => {
-      expect(result.type).to.equal("return");
-      expect(result.value.value).to.equal(6);
+    }).then((completion) => {
+      expect(completion.type).to.equal("return");
+      expect(completion.getCompletionValue()).to.equal(6);
     });
   });
 
@@ -33,9 +34,9 @@ describe("Suite of random scripts that I should organize much better", function(
     return readFile("./scripts/callableWithSpread.test.js").then((script) => {
       var e = Object.create(Engine);
       return e.run(script);
-    }).then((result) => {
-      expect(result.type).to.equal("return");
-      result = result.value.value;
+    }).then((completion) => {
+      expect(completion.type).to.equal("return");
+      var result = completion.getCompletionValue();
       expect(result).to.be.an("object");
       expect(result).to.have.property("first", 1);
       expect(result).to.have.property("others");
@@ -47,15 +48,16 @@ describe("Suite of random scripts that I should organize much better", function(
     return readFile("./scripts/arrayMethods.test.js").then((script) => {
       var e = Object.create(Engine);
       return e.run(script);
-    }).then((result) => {
-      expect(result.type).to.equal("return");
-      expect(result.value.value).to.be.an("object");
-      expect(result.value.value).to.have.property("arr").which.is.an("array");
-      expect(result.value.value).to.have.property("every", true);
-      expect(result.value.value).to.have.property("allMoreThan1").with.lengthOf(8);
-      expect(result.value.value).to.have.property("firstMoreThan1", 2);
-      expect(result.value.value).to.have.property("forEachData").with.lengthOf(10);
-      expect(result.value.value).to.have.property("final", 90);
+    }).then((completion) => {
+      expect(completion.type).to.equal("return");
+      var result = completion.getCompletionValue();
+      expect(result).to.be.an("object");
+      expect(result).to.have.property("arr").which.is.an("array");
+      expect(result).to.have.property("every", true);
+      expect(result).to.have.property("allMoreThan1").with.lengthOf(8);
+      expect(result).to.have.property("firstMoreThan1", 2);
+      expect(result).to.have.property("forEachData").with.lengthOf(10);
+      expect(result).to.have.property("final", 90);
     });
   });
 
@@ -63,9 +65,22 @@ describe("Suite of random scripts that I should organize much better", function(
     return readFile("./scripts/closure.test.js").then((script) => {
       var e = Object.create(Engine);
       return e.run(script);
-    }).then((result) => {
-      expect(result.type).to.equal("return");
-      expect(result.value.value).to.equal(9);
+    }).then((completion) => {
+      expect(completion.type).to.equal("return");
+      expect(completion.getCompletionValue()).to.equal(9);
+    });
+  });
+
+  it("Should manage new and prototypes correctly", function() {
+    return readFile("./scripts/newWithPrototype.test.js").then((script) => {
+      var e = Object.create(Engine);
+      return e.run(script);
+    }).then((completion) => {
+      expect(completion.type).to.equal("return");
+      var result = completion.getCompletionValue();
+      expect(result).to.be.an("object");
+      expect(result).to.have.property("bar", "bar");
+      expect(result).to.have.property("protoprop", 1);
     });
   });
 
@@ -73,9 +88,9 @@ describe("Suite of random scripts that I should organize much better", function(
     return readFile("./scripts/promise.test.js").then((script) => {
       var e = Object.create(Engine);
       return e.run(script);
-    }).then((result) => {
-      expect(result.value.value).to.be.an("array");
-      var [resolved, unresolved] = result.value.value;
+    }).then((completion) => {
+      expect(completion.getCompletionValue()).to.be.an("array");
+      var [resolved, unresolved] = completion.getCompletionValue();
       expect(unresolved).to.be.an("object");
       expect(unresolved).to.have.property("__NPO__", 1);
       expect(resolved).to.be.an("object");
