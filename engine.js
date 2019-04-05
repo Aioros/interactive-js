@@ -4,6 +4,7 @@ const Context = require("./context.js");
 const MessageQueue = require("./messageQueue.js");
 const asyncApis = require("./lib/asyncApis.js");
 const arrayMethods = require("./lib/arrayMethods.js");
+const ExpValue = require("./lib/expValue.js");
 
 const vm = require("vm");
 
@@ -60,10 +61,10 @@ const Engine = {
     }
     this.Scope.define("global", "var", globalObj); // TODO: or window? or something else?
     this.Scope.define("this", "var", globalObj);
-    var result = await this.processFunction(mainFunction);
+    var completion = await this.processFunction(mainFunction);
     // this is where the event loop should be
     await this.MessageQueue.runEventLoop();
-    return result;
+    return completion;
   },
   
   getCurrentContext: function() {
@@ -99,12 +100,12 @@ const Engine = {
   findMemberExpression: async function(expression) {
     var info = {
       obj: null,
-      prop: expression.computed ? (await this.process(expression.property)).value : expression.property.name,
+      prop: expression.computed ? (await this.process(expression.property)).unwrap() : expression.property.name,
       getValue: function() {
-        return this.obj.value[this.prop];
+        return this.obj[this.prop];
       }
     }
-    info.obj = await this.process(expression.object);
+    info.obj = (await this.process(expression.object)).unwrap();
     return info;
   },
   
@@ -156,13 +157,13 @@ const Engine = {
 
     // define this
     if (fThis) {
-      this.Scope.define("this", "var", await this.process(fThis));
+      this.Scope.define("this", "var", (await this.process(fThis)).unwrap());
     }
     
     // define function arguments
     var args = [];
     for (let p of callParams) {
-      args.push(await this.process(p));
+      args.push((await this.process(p)).unwrap());
     }
     this.Scope.define("arguments", "var", args);
 
@@ -225,7 +226,7 @@ const Engine = {
     var varDecs = tempTree.filter(s => s.type == "VariableDeclaration" && s.kind != "let");
     for (let dec of funDecs) {
       let fn = await this.process(dec);
-      this.Scope.define(dec.id.name, "function", fn.value.value);
+      this.Scope.define(dec.id.name, "function", fn.getCompletionValue());
     }
     varDecs.forEach(decs => {
       decs.declarations.forEach(dec => {
@@ -272,7 +273,7 @@ const Engine = {
   
   process: async function(node) {
     if (!node || !node.type) {
-      return {value: node};
+      return ExpValue(node);
     } 
 
     if (!node._initialized) {
@@ -310,10 +311,10 @@ const Engine = {
     if (!f.context)
       this.createFunctionContext(f);
     this.callStack.push(f.context);
-    var result = await this.processFunction(f, args, fThis);
+    var completion = await this.processFunction(f, args, fThis);
     this.callStack.pop();
-    if (result.type == "return")
-      return result.value;
+    if (completion.type == "return")
+      return completion.getCompletionValue();
   }
   
 };
