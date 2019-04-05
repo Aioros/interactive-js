@@ -4,6 +4,7 @@ const Context = require("./context.js");
 const MessageQueue = require("./messageQueue.js");
 const asyncApis = require("./lib/asyncApis.js");
 const arrayMethods = require("./lib/arrayMethods.js");
+const ExpValue = require("./lib/expValue.js");
 
 const vm = require("vm");
 
@@ -101,10 +102,10 @@ const Engine = {
       obj: null,
       prop: expression.computed ? (await this.process(expression.property)).value : expression.property.name,
       getValue: function() {
-        return this.obj.value[this.prop];
+        return this.obj[this.prop];
       }
     }
-    info.obj = await this.process(expression.object);
+    info.obj = (await this.process(expression.object)).unwrap();
     return info;
   },
   
@@ -156,7 +157,7 @@ const Engine = {
 
     // define this
     if (fThis) {
-      this.Scope.define("this", "var", await this.process(fThis));
+      this.Scope.define("this", "var", (await this.process(fThis)).unwrap());
     }
     
     // define function arguments
@@ -272,7 +273,7 @@ const Engine = {
   
   process: async function(node) {
     if (!node || !node.type) {
-      return {value: node};
+      return ExpValue(node);
     } 
 
     if (!node._initialized) {
