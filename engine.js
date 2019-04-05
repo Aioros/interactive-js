@@ -100,7 +100,7 @@ const Engine = {
   findMemberExpression: async function(expression) {
     var info = {
       obj: null,
-      prop: expression.computed ? (await this.process(expression.property)).value : expression.property.name,
+      prop: expression.computed ? (await this.process(expression.property)).unwrap() : expression.property.name,
       getValue: function() {
         return this.obj[this.prop];
       }
@@ -163,7 +163,7 @@ const Engine = {
     // define function arguments
     var args = [];
     for (let p of callParams) {
-      args.push(await this.process(p));
+      args.push((await this.process(p)).unwrap());
     }
     this.Scope.define("arguments", "var", args);
 
