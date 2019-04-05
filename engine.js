@@ -61,10 +61,10 @@ const Engine = {
     }
     this.Scope.define("global", "var", globalObj); // TODO: or window? or something else?
     this.Scope.define("this", "var", globalObj);
-    var result = await this.processFunction(mainFunction);
+    var completion = await this.processFunction(mainFunction);
     // this is where the event loop should be
     await this.MessageQueue.runEventLoop();
-    return result;
+    return completion;
   },
   
   getCurrentContext: function() {
@@ -226,7 +226,7 @@ const Engine = {
     var varDecs = tempTree.filter(s => s.type == "VariableDeclaration" && s.kind != "let");
     for (let dec of funDecs) {
       let fn = await this.process(dec);
-      this.Scope.define(dec.id.name, "function", fn.value.value);
+      this.Scope.define(dec.id.name, "function", fn.getCompletionValue());
     }
     varDecs.forEach(decs => {
       decs.declarations.forEach(dec => {
@@ -311,10 +311,10 @@ const Engine = {
     if (!f.context)
       this.createFunctionContext(f);
     this.callStack.push(f.context);
-    var result = await this.processFunction(f, args, fThis);
+    var completion = await this.processFunction(f, args, fThis);
     this.callStack.pop();
-    if (result.type == "return")
-      return result.value;
+    if (completion.type == "return")
+      return completion.getCompletionValue();
   }
   
 };
