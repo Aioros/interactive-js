@@ -99,4 +99,16 @@ describe("Suite of random scripts that I should organize much better", function(
     });
   });
 
+  it("Should manage generators correctly", function() {
+    return readFile("./scripts/generator.test.js").then((script) => {
+      var e = Object.create(Engine);
+      return e.run(script);
+    }).then((completion) => {
+      var result = completion.getCompletionValue();
+      expect(result).to.be.an("object");
+      expect(result).to.have.property("value", 21);
+      expect(result).to.have.property("done", true);
+    });
+  });
+
 });

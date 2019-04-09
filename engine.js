@@ -5,6 +5,8 @@ const MessageQueue = require("./messageQueue.js");
 const asyncApis = require("./lib/asyncApis.js");
 const arrayMethods = require("./lib/arrayMethods.js");
 const ExpValue = require("./lib/expValue.js");
+const Completion = require("./lib/completion.js");
+const GenIterator = require("./lib/genIterator.js");
 
 const vm = require("vm");
 
@@ -54,7 +56,7 @@ const Engine = {
     this.init(script, globalObj, useStrict);
     var mainFunction = this.Compiler.parse(this.script);
     mainFunction.context = Object.create(Context);
-    mainFunction.context.init("Global");
+    mainFunction.context.init(mainFunction);
     this.callStack.push(mainFunction.context);
     for (let key of Object.getOwnPropertyNames(this.globalObj)) {
       this.Scope.define(key, "var", this.globalObj[key]);
@@ -245,8 +247,7 @@ const Engine = {
   createFunctionContext: function(f) {
     // associate an execution context to this function with the right scope chain
     f.context = Object.create(Context);
-    f.context.init(f.id ? f.id.name : null);
-    f.context.ScopeChain = f.context.ScopeChain.concat(this.getCurrentContext().ScopeChain);
+    f.context.init(f, this.getCurrentContext());
   },
   
   addAction: function(hooks, action, when = "before") {
@@ -308,6 +309,11 @@ const Engine = {
   },
   
   callFunction: async function(f, args, fThis) {
+
+    if (f.generator) {
+      return GenIterator(f, args, fThis);
+    }
+
     if (!f.context)
       this.createFunctionContext(f);
     this.callStack.push(f.context);

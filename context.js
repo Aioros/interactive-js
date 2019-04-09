@@ -1,9 +1,21 @@
 // Execution Context object
 const Context = {
-  init: function(name) {
-    this.name = name;
+  init: function(f, parentContext) {
+    this.name = f.id ? f.id.name : null;
+    this.f = f;
+    this.parentContext = parentContext;
 	  this.VO = {};
     this.ScopeChain = [this.VO];
+    if (parentContext)
+      this.ScopeChain = this.ScopeChain.concat(parentContext.ScopeChain);
+  },
+  cloneFor: function(newF) {
+    var newContext = Object.assign({}, this, {
+      f: newF,
+      VO: {}
+    });
+    newContext.ScopeChain = [newContext.VO].concat(newContext.parentContext.ScopeChain);
+    return newContext;
   }
 };
 
