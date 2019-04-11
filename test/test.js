@@ -99,4 +99,17 @@ describe("Suite of random scripts that I should organize much better", function(
     });
   });
 
+  it("Should manage try/catch/finally structures correctly", function() {
+    return readFile("./scripts/tryCatch.test.js").then((script) => {
+      var e = Object.create(Engine);
+      return e.run(script);
+    }).then((completion) => {
+      var result = completion.getCompletionValue();
+      expect(result).to.be.an("array");
+      expect(result[0]).to.equal(2);
+      expect(result[1]).to.equal(1);
+      expect(result[2]).to.equal(3);
+    });
+  });
+
 });

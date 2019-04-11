@@ -206,6 +206,12 @@ const Engine = {
           if (val.alternate)
             result = result.concat(val.alternate);
           return result;
+        } else if (val.type == "TryStatement") {
+          return acc.concat(
+            flattenBlocks(val.block),
+            flattenBlocks(val.handler),
+            val.finalizer ? flattenBlocks(val.finalizer) : []
+          );
         } else if (val.type == "ForStatement") {
           return acc.concat(val.init, val.test, val.update, flattenBlocks(val.body));
         } else if (["ForInStatement", "ForOfStatement"].includes(val.type)) {
