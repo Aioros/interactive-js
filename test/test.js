@@ -105,9 +105,14 @@ describe("Suite of random scripts that I should organize much better", function(
       return e.run(script);
     }).then((completion) => {
       var result = completion.getCompletionValue();
-      expect(result).to.be.an("object");
-      expect(result).to.have.property("value", 21);
-      expect(result).to.have.property("done", true);
+      expect(result).to.be.an("array");
+      expect(result[0]).to.be.an("object");
+      expect(result[0]).to.have.property("value", 21);
+      expect(result[0]).to.have.property("done", true);
+      expect(result[1]).to.be.an("array");
+      expect(result[1][0]).to.equal(40);
+      expect(result[1][1]).to.equal(600);
+      expect(result[2]).to.equal(5);
     });
   });
 
