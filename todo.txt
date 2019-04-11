@@ -1,1 +1,3 @@
-- this: all the cases, call/apply/bind
+- for..in/for..of
+- generators: it.return(), finally, break
+- async/await
