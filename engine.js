@@ -65,7 +65,7 @@ const Engine = {
     this.Scope.define("this", "var", globalObj);
     var completion = await this.processFunction(mainFunction);
     if (completion.type == "error") {
-      console.error(completion.getCompletionValue());
+      console.error("Uncaught", completion.getCompletionValue());
     }
     // this is where the event loop should be
     await this.MessageQueue.runEventLoop();
@@ -320,7 +320,7 @@ const Engine = {
   callFunction: async function(f, args, fThis) {
 
     if (f.generator) {
-      return GenIterator(f, args, fThis);
+      return Completion("return", GenIterator(f, args, fThis));
     }
 
     if (!f.context)
