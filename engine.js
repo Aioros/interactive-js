@@ -64,6 +64,9 @@ const Engine = {
     this.Scope.define("global", "var", globalObj); // TODO: or window? or something else?
     this.Scope.define("this", "var", globalObj);
     var completion = await this.processFunction(mainFunction);
+    if (completion.type == "error") {
+      console.error(completion.getCompletionValue());
+    }
     // this is where the event loop should be
     await this.MessageQueue.runEventLoop();
     return completion;
@@ -211,7 +214,7 @@ const Engine = {
         } else if (val.type == "TryStatement") {
           return acc.concat(
             flattenBlocks(val.block),
-            flattenBlocks(val.handler),
+            val.handler ? flattenBlocks(val.handler) : [],
             val.finalizer ? flattenBlocks(val.finalizer) : []
           );
         } else if (val.type == "ForStatement") {
@@ -286,10 +289,6 @@ const Engine = {
     if (!node._initialized) {
       node = this.Compiler.setupNode(node);
     }
-
-    // Not sure why I needed this
-    //if (!node.isStatement && !node.isExpression)
-      //return node;
     
     for (let action of this.getActions(node.type, "before")) {
       await action.call(node, node);
@@ -297,7 +296,11 @@ const Engine = {
     
     var result;
     if (node.isStatement) {
-      result = await node.execute();
+      try {
+        result = await node.execute();
+      } catch (err) {
+        result = Completion("error", err);
+      }
       if (this.appendStatement) {
         let appSt = this.appendStatement;
         this.appendStatement = null;
@@ -325,8 +328,7 @@ const Engine = {
     this.callStack.push(f.context);
     var completion = await this.processFunction(f, args, fThis);
     this.callStack.pop();
-    if (completion.type == "return")
-      return completion.getCompletionValue();
+    return completion;
   }
   
 };
