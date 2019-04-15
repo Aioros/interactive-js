@@ -299,7 +299,12 @@ const Engine = {
       try {
         result = await node.execute();
       } catch (err) {
-        result = Completion("error", err);
+        if (err.control && err.control == "return") {
+          // This is actually a return interrupt (see genIterator.js)
+          result = Completion("return", err);
+        } else {
+          result = Completion("error", err);
+        }
       }
       if (this.appendStatement) {
         let appSt = this.appendStatement;
@@ -308,6 +313,10 @@ const Engine = {
       }
     } else if (node.isExpression) {
       result = await node.evaluate();
+      if (result && result.control == "error") {
+        // This will be caught by the enclosing statement
+        throw result.unwrap();
+      }
     }
 
     for (let action of this.getActions(node.type, "after")) {
