@@ -40,9 +40,9 @@ Usage
       })
 Status and Features
 ------------
-The project is still in early development. Most of the basic language constructs work, but many features are still missing, most notably:
+The project is still in early development. Most of the basic language constructs work, and the engine supports an event loop, promises, and generators; but many features are still missing, most notably:
 
  - `async`/`await`
- - generators
+ - Proxies
  - shims for common async API functions;
 
