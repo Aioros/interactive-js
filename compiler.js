@@ -40,6 +40,9 @@ module.exports = {
       node.evaluate = node.execute = function() { console.log("Node not recognized", this); };
     }
     node._initialized = true;
+    node.toString = function() {
+      return this.Engine.script.substring(...this.range);
+    };
     if (node.hasOwnProperty("type"))
       node.Engine = this.Engine;
     return node;
@@ -48,7 +51,6 @@ module.exports = {
     var tree = esprima.parseScript(script, {range: true, loc: true});
     tree = deepCopyMap(tree, this.setupNode.bind(this));
     var mainFunctionAST = tree.body[0];
-    //console.log(mainFunctionAST);
     return mainFunctionAST;
   }
 };
