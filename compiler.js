@@ -5,10 +5,10 @@ const path = require("path");
 var expressionTypes = [],
     statementTypes = [];
 
-glob.sync("./lib/expressions/**/*.js").forEach(function(file) {
+glob.sync(path.resolve(__dirname, "./lib/expressions/**/*.js")).forEach(function(file) {
   expressionTypes = expressionTypes.concat(require(path.resolve(file)));
 });
-glob.sync("./lib/statements/**/*.js").forEach(function(file) {
+glob.sync(path.resolve(__dirname, "./lib/statements/**/*.js")).forEach(function(file) {
   statementTypes = statementTypes.concat(require(path.resolve(file)));
 });
 
