@@ -1,16 +1,19 @@
 const esprima = require("esprima");
-const glob = require("glob");
 const path = require("path");
 
 var expressionTypes = [],
     statementTypes = [];
 
-glob.sync(path.resolve(__dirname, "./lib/expressions/**/*.js")).forEach(function(file) {
-  expressionTypes = expressionTypes.concat(require(path.resolve(file)));
-});
-glob.sync(path.resolve(__dirname, "./lib/statements/**/*.js")).forEach(function(file) {
-  statementTypes = statementTypes.concat(require(path.resolve(file)));
-});
+expressionTypes = expressionTypes.concat(
+  require("./lib/expressions/assignmentExpression.js"),
+  require("./lib/expressions/callExpression.js"),
+  require("./lib/expressions/functionExpressions.js"),
+  require("./lib/expressions/miscExpressions.js"),
+  require("./lib/expressions/opExpressions.js"),
+);
+statementTypes = statementTypes.concat(
+  require("./lib/statements/statements.js")
+);
 
 function deepCopyMap(o, map = (x => x)) {
   var out, v, key;

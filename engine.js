@@ -12,23 +12,21 @@ const vm = require("vm");
 
 var actionHooks = {before: new Map(), after: new Map()};
 
-function createGlobalObject(engine) {
-  // Trick the vm module into passing me its context object
+function createGlobalObject(obj) {
+  // Get the global object from a vm sandbox
   // Not a looker, but gets the job done
-  var globalObj;
 
-  function assignSandboxToGlobalObj(sb) {
-    globalObj = sb;
-  }
+  // https://github.com/flexdinesh/browser-or-node/blob/master/src/index.js
+  //const isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined';
+  //const isNode = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
 
-  var sandbox = vm.createContext();
-  sandbox.assignSandboxToGlobalObj = assignSandboxToGlobalObj;
-  vm.runInContext('assignSandboxToGlobalObj(this)', sandbox);
-  delete globalObj['assignSandboxToGlobalObj'];
-
-  globalObj.Array.prototype = arrayMethods(globalObj.Array);
-
-  return globalObj;
+  var sandbox = vm.createContext(obj);
+  vm.runInContext(`
+    var globalOrWindow = (1, eval)(this);
+    globalOrWindow.Array.prototype = arrayMethods(Array);
+  `, sandbox);
+  
+  return sandbox;
 }
 
 const Engine = {
@@ -37,11 +35,12 @@ const Engine = {
     if (!this._initialized) {
       this._initialized = true;
       this.script = "function Global() { " + script + " }";
-      this.globalObj = Object.assign(
-        createGlobalObject(this),
+      this.globalObj = createGlobalObject(Object.assign(
+        {},
         asyncApis(this),
+        {arrayMethods},
         globalObj
-      );
+      ));
       this.useStrict = useStrict;
       this.appendStatement = null;
       this.callStack = [];
@@ -57,10 +56,10 @@ const Engine = {
     var mainFunction = this.Compiler.parse(this.script);
     mainFunction.context = Object.create(Context);
     mainFunction.context.init(mainFunction);
+
+    mainFunction.context.VO.vars = this.globalObj;
     this.callStack.push(mainFunction.context);
-    for (let key of Object.getOwnPropertyNames(this.globalObj)) {
-      this.Scope.define(key, "var", this.globalObj[key]);
-    }
+
     this.Scope.define("global", "var", globalObj); // TODO: or window? or something else?
     this.Scope.define("this", "var", globalObj);
     var completion = await this.processFunction(mainFunction);
@@ -289,6 +288,10 @@ const Engine = {
     if (!node._initialized) {
       node = this.Compiler.setupNode(node);
     }
+
+    if (node._processed) {
+      //return node._processed;
+    }
     
     for (let action of this.getActions(node.type, "before")) {
       await action.call(node, node);
@@ -318,6 +321,8 @@ const Engine = {
         throw result.unwrap();
       }
     }
+
+    node._processed = result;
 
     for (let action of this.getActions(node.type, "after")) {
       await action.call(node, node);
