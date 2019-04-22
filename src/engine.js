@@ -236,6 +236,7 @@ const Engine = {
     var varDecs = tempTree.filter(s => s.type == "VariableDeclaration" && s.kind != "let");
     for (let dec of funDecs) {
       let fn = await this.process(dec);
+      dec._processed = fn;
       this.Scope.define(dec.id.name, "function", fn.getCompletionValue());
     }
     varDecs.forEach(decs => {
@@ -290,7 +291,7 @@ const Engine = {
     }
 
     if (node._processed) {
-      //return node._processed;
+      return node._processed;
     }
     
     for (let action of this.getActions(node.type, "before")) {
@@ -321,8 +322,6 @@ const Engine = {
         throw result.unwrap();
       }
     }
-
-    node._processed = result;
 
     for (let action of this.getActions(node.type, "after")) {
       await action.call(node, node);
