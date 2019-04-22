@@ -3,8 +3,8 @@ const should = require("chai").should();
 
 const fs = require('fs');
 
-const Engine = require("../engine.js");
-const Completion = require("../lib/completion.js");
+const Engine = require("../src/engine.js");
+const Completion = require("../src/lib/completion.js");
 
 function readFile(path) {
   var filename = require.resolve(path);

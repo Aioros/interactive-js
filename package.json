@@ -2,10 +2,11 @@
   "name": "interactive-js",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "./src/index.js",
   "scripts": {
-    "start": "node main.js",
-    "test": "mocha"
+    "start": "node ./src/main.js",
+    "test": "mocha",
+    "build": "webpack"
   },
   "dependencies": {
     "esprima": "^4.0.1",
@@ -18,12 +19,15 @@
     "url": "https://github.com/Aioros/interactive-js"
   },
   "license": "MIT",
+  "private": true,
   "keywords": [
     "node",
     "javascript"
   ],
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^6.0.2"
+    "mocha": "^6.0.2",
+    "webpack": "^4.30.0",
+    "webpack-cli": "^3.3.0"
   }
 }
