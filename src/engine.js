@@ -62,6 +62,7 @@ const Engine = {
     mainFunction.context.init(mainFunction);
 
     mainFunction.context.VO.vars = this.globalObj;
+    mainFunction.context.VO.isSandbox = true;
     this.callStack.push(mainFunction.context);
     
     var completion = await this.processFunction(mainFunction);

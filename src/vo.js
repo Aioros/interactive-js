@@ -5,7 +5,7 @@ function VO() {
   return {
     vars: {},
     hasIdentifier: function(id) {
-      if (!vm.isContext(this.vars)) {
+      if (!this.isSandbox) {
         return this.vars.hasOwnProperty(id);
       } else {
         try {
@@ -17,14 +17,14 @@ function VO() {
       }
     },
     getIdentifier: function(id) {
-      if (!vm.isContext(this.vars)) {
+      if (!this.isSandbox) {
         return this.vars[id];
       } else {
         return Identifier(vm.runInContext(id, this.vars));
       }
     },
     setIdentifier: function(id, v) {
-      if (!vm.isContext(this.vars)) {
+      if (!this.isSandbox) {
         this.vars[id] = v;
       } else {
         this.vars[id] = v;
