@@ -44,7 +44,11 @@ module.exports = {
     }
     node._initialized = true;
     node.toString = function() {
-      return this.Engine.script.substring(...this.range);
+      if (this.range) {
+        return this.Engine.script.substring(...this.range);
+      } else {
+        return "";
+      }
     };
     if (node.hasOwnProperty("type"))
       node.Engine = this.Engine;
