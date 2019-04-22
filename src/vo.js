@@ -8,7 +8,12 @@ function VO() {
       if (!vm.isContext(this.vars)) {
         return this.vars.hasOwnProperty(id);
       } else {
-        return vm.runInContext("'" + id + "' in this", this.vars);
+        try {
+          vm.runInContext(id + ";", this.vars);
+          return true;
+        } catch (refError) {
+          return false;
+        }
       }
     },
     getIdentifier: function(id) {
@@ -27,30 +32,5 @@ function VO() {
     }
   }
 }
-/*
-const VO = {
-  vars: {},
-  hasIdentifier: function(id) {
-    if (!vm.isContext(this.vars)) {
-      return this.vars.hasOwnProperty(id);
-    } else {
-      return vm.runInContext("'" + id + "' in this", this.vars);
-    }
-  },
-  getIdentifier: function(id) {
-    if (!vm.isContext(this.vars)) {
-      return this.vars[id];
-    } else {
-      return Identifier(vm.runInContext(id, this.vars));
-    }
-  },
-  setIdentifier: function(id, v) {
-    if (!vm.isContext(this.vars)) {
-      this.vars[id] = v;
-    } else {
-      this.vars[id] = v;
-    }
-  }
-}*/
 
 module.exports = VO;

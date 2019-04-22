@@ -17,13 +17,17 @@ function createGlobalObject(obj) {
   // Not a looker, but gets the job done
 
   // https://github.com/flexdinesh/browser-or-node/blob/master/src/index.js
-  //const isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined';
-  //const isNode = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
+  const isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined';
+  const isNode = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
+  var globalOrWindow = "global";
+  if (isBrowser) {
+    globalOrWindow = "window";
+  }
 
   var sandbox = vm.createContext(obj);
   vm.runInContext(`
-    var globalOrWindow = (1, eval)(this);
-    globalOrWindow.Array.prototype = arrayMethods(Array);
+    var ` + globalOrWindow + ` = (1, eval)(this);
+    ` + globalOrWindow + `.Array.prototype = arrayMethods(Array);
   `, sandbox);
   
   return sandbox;
@@ -59,9 +63,7 @@ const Engine = {
 
     mainFunction.context.VO.vars = this.globalObj;
     this.callStack.push(mainFunction.context);
-
-    this.Scope.define("global", "var", globalObj); // TODO: or window? or something else?
-    this.Scope.define("this", "var", globalObj);
+    
     var completion = await this.processFunction(mainFunction);
     if (completion.type == "error") {
       console.error("Uncaught", completion.getCompletionValue());
